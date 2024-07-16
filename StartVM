@@ -1,0 +1,28 @@
+trigger: none
+pr: none
+
+parameters:
+  – name: vms
+    type: object
+    default: [""windows-1"]
+
+pool:
+  vmImage: ubuntu-latest
+
+jobs:
+– job: startvmjob
+  displayName: Start VMs
+    
+  steps: 
+  – checkout: none
+  
+  – ${{ each vm in parameters.vms }}:
+    – task: AzureCLI@2
+      displayName: starting vm ${{vm}}
+      inputs:
+        azureSubscription: 'Azure Subscription Service Connection'
+        scriptType: 'pscore'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          $vmrequest = az vm list | ConvertFrom-Json | Where-Object {$_.Name -Match "${{vm}}"}
+          az vm start –resource-group $vmrequest.resourcegroup –name $vmrequest.name
